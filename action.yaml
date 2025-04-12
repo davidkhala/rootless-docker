@@ -1,21 +1,43 @@
-name: "davidkhala/new-action"
-description: 'new action description'
+name: "davidkhala/rootless-docker"
+description: "Run Docker in Rootless Mode on Linux"
 
 branding:
-  icon: 'package' # find one in https://haya14busa.github.io/github-action-brandings/
-  color: 'purple' # one of ["white", "yellow", "blue", "green", "orange", "red", "purple", "gray-dark"]
-inputs:
-  tests:
-    description: 'Test Sources Root: working-directory of your tests'
-    required: false
-    default: tests
-  working-directory:
-    description: 'action run path'
-    required: true
+  icon: "lock"
+  color: "purple"
+
 runs:
   using: "composite"
   steps:
-  - if: ${{ inputs.tests != '' }}
-    run: echo tests
-    working-directory: ${{inputs.working-directory}}
-    shell: bash
+    - name: Stop rootful Docker daemon.
+      run: sudo systemctl stop docker.service
+      shell: bash
+    - name: Configure AppArmor
+      shell: bash
+      run: |
+        abi4_version="$(find /etc/apparmor.d/abi -maxdepth 1 -name '4.*' -printf '%f\n' | sort -nr | head -1)"
+        filename=$(echo $HOME/bin/rootlesskit | sed -e s@^/@@ -e s@/@.@g)
+        cat <<EOF > ~/${filename}
+          abi <abi/${abi4_version}>,
+          include <tunables/global>
+
+          "$HOME/bin/rootlesskit" flags=(unconfined) {
+            userns,
+
+            include if exists <local/${filename}>
+          }
+        EOF
+        sudo mv ~/${filename} /etc/apparmor.d/${filename}
+        sudo systemctl restart apparmor.service
+    - name: Install rootless Docker
+      shell: bash
+      run: curl -fsSL https://get.docker.com/rootless | sh
+      env:
+        FORCE_ROOTLESS_INSTALL: 1
+    - name: Configure
+      shell: bash
+      run: echo ~/bin >>"$GITHUB_PATH"
+    - name: Wait until Docker daemon listening
+      shell: bash
+      run: echo TBD
+        
+        
