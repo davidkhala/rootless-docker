@@ -36,8 +36,5 @@ runs:
     - name: Configure
       shell: bash
       run: echo ~/bin >>"$GITHUB_PATH"
-    - name: Wait until Docker daemon listening
-      shell: bash
-      run: echo TBD
         
         

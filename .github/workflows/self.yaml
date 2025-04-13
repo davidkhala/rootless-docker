@@ -6,6 +6,7 @@ jobs:
         steps:
         - uses: actions/checkout@main
         - uses: ./
+        - run: docker ps 
         - run: docker context ls
         - run: docker info --format '{{ .ClientInfo.Context }}'
     
