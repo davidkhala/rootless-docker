@@ -16,7 +16,7 @@ jobs:
                 rootless: [true, false]
         runs-on: ${{ matrix.os }}
         steps:
-        - uses: docker/setup-docker-action@v4
+        - uses: docker/setup-docker-action@v4.3.0
           with:
             rootless: ${{ matrix.rootless }}
         - run: docker context ls
